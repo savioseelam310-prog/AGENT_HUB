@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local AI Agent Hub</title>
+    <!-- Include Marked.js for clean markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --panel-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 750px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            height: 88vh;
+        }
+
+        header h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.bot p { margin: 0 0 10px 0; }
+        .message.bot p:last-child { margin-bottom: 0; }
+        .message.bot a { color: #818cf8; text-decoration: none; }
+        .message.bot a:hover { text-decoration: underline; }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        select {
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            color: var(--text-main);
+            border: none;
+            padding: 10px;
+            font-size: 0.95rem;
+            resize: none;
+            height: 24px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+            height: 8px; width: 8px; background: var(--text-muted); display: inline-block; border-radius: 50%; margin: 0 2px;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: .2s; }
+        .loading-dots span:nth-child(3) { animation-delay: .4s; }
+        @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; }}
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <header>
+        <h2>⚡ Local Multi-Agent Hub</h2>
+    </header>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">
+            Hello! Choose your processing agent below or chat natively with the local LLM.
+        </div>
+    </div>
+    
+    <div class="controls">
+        <select id="modeSelect">
+            <option value="chat">💬 Standard Chat</option>
+            <option value="email">📧 Email Agent</option>
+            <option value="youtube">📺 YouTube Agent</option>
+        </select>
+        <textarea id="promptInput" placeholder="Type your instruction here..." rows="1" onkeydown="handleKeyPress(event)"></textarea>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    function handleKeyPress(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('promptInput');
+        const chatBox = document.getElementById('chatBox');
+        const modeSelect = document.getElementById('modeSelect');
+        
+        const prompt = input.value.trim();
+        if (!prompt) return;
+
+        // Append User Message
+        chatBox.innerHTML += `<div class="message user">${escapeHtml(prompt)}</div>`;
+        input.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Append Loading Indicator
+        const loadingId = 'loading-' + Date.now();
+        chatBox.innerHTML += `
+            <div class="message bot" id="${loadingId}">
+                <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
+            </div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    prompt: prompt, 
+                    mode: modeSelect.value,
+                    model: 'qwen3.5:4b' 
+                })
+            });
+
+            const data = await response.json();
+            const rawText = data.text || data.error || "An unknown error occurred.";
+            
+            // Render Markdown text cleanly
+            document.getElementById(loadingId).innerHTML = marked.parse(rawText);
+        } catch (err) {
+            document.getElementById(loadingId).innerText = `Error: Could not reach communication server.`;
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+</script>
+
+</body>
+</html>
