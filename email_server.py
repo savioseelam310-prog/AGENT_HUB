@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # 1. Point to your local Ollama copy
 local_model_1 = OllamaModel(
-    model_name="qwen3.5:4b",
+    model_name="qwen3.5:4b",  ####ollama model 
     provider=OllamaProvider(base_url="http://localhost:11434/v1")
 )
 
@@ -35,8 +35,8 @@ def provide_email_agent_prompt() -> str:
 
 # 4. Standard Email dispatch routine
 def execute_send_email(payload: EmailPayload) -> str:
-    sender_email = "savioseelam310@gmail.com"
-    sender_password = "ewut ubkb amaj xepb"
+    sender_email = "abc@gmail.com" #your email address
+    sender_password = "your_new_app_password"
 
     if not sender_email or not sender_password:
         return "Error: Missing credentials."
