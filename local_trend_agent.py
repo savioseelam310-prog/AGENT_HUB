@@ -12,7 +12,7 @@ import uvicorn
 
 # Load environment variables
 load_dotenv()
-YOUTUBE_API_KEY = "AIzaSyAw4VY2zQGFx3npBAHHFhi4FQxHgOEks0M"
+YOUTUBE_API_KEY = your_new_youtube_api_key
 
 # Ensure environment variables are set for Ollama
 local_model_1 = OllamaModel(
