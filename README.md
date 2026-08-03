@@ -67,10 +67,10 @@ ollama pull qwen3.5:4b
 
 ### 🔐 Security setup (do this first)
 
-Both Python files currently have secrets hardcoded directly in the source (a Gmail app password and a YouTube API key). Before running or committing this project:
+Both Python files  have secrets key (a Gmail app password and a YouTube API key). Before running or committing this project:
 
-1. **Rotate both credentials** — revoke the exposed Gmail app password and regenerate the YouTube API key, since they are visible in these files.
-2. Move them into a `.env` file at the project root:
+
+1. Move them into a `.env` file at the project root:
 
 ```env
 GMAIL_ADDRESS=your_email@gmail.com
@@ -79,7 +79,6 @@ YOUTUBE_API_KEY=your_new_youtube_api_key
 ```
 
 3. Update `email_server.py` and `local_trend_agent.py` to read these via `os.getenv(...)` instead of hardcoded strings.
-4. Add `.env` to `.gitignore` so it's never committed.
 
 ### 1. Clone the repository
 
